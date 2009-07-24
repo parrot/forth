@@ -16,11 +16,11 @@
 
     load_bytecode 'languages/forth/forth.pir'
 
-    .local pmc iter
-    iter = new 'Iterator', args
+    .local pmc it
+    it = iter args
 next_file:
-    unless iter goto done
-    $S0 = shift iter
+    unless it goto done
+    $S0 = shift it
     test($S0)
     goto next_file
 done:
