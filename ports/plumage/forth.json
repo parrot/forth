@@ -1,0 +1,63 @@
+{
+    "meta-spec"    : {
+        "version"  : 1,
+        "uri"      : "https://trac.parrot.org/parrot/wiki/ModuleEcosystem"
+    },
+    "general"      : {
+        "name"     : "forth",
+        "abstract" : "Forth on Parrot",
+        "version"  : "HEAD",
+        "license"  : {
+            "type" : "Artistic License 2.0",
+            "uri"  : "http://www.perlfoundation.org/artistic_license_2_0"
+        },
+        "copyright_holder" : "Parrot Foundation",
+        "generated_by"     : "distutils",
+        "keywords"         : ["forth"],
+        "description"      : "Forth on Parrot VM"
+    },
+    "instructions" : {
+        "fetch"    : {
+            "type" : "repository"
+        },
+        "update"   : {
+            "type" : "parrot_setup"
+        },
+        "build"    : {
+            "type" : "parrot_setup"
+        },
+        "test"     : {
+            "type" : "parrot_setup"
+        },
+        "smoke"    : {
+            "type" : "parrot_setup"
+        },
+        "install"  : {
+            "type" : "parrot_setup"
+        },
+        "uninstall": {
+            "type" : "parrot_setup"
+        },
+        "clean"    : {
+            "type" : "parrot_setup"
+        }
+    },
+    "dependency-info"  : {
+        "provides"     : ["forth"],
+        "requires"     : {
+            "fetch"    : ["svn"],
+            "build"    : [],
+            "test"     : ["perl5"],
+            "install"  : [],
+            "runtime"  : []
+        }
+    },
+    "resources"            : {
+        "repository"       : {
+             "type"        : "svn",
+             "checkout_uri": "https://svn.parrot.org/languages/forth/trunk",
+             "browser_uri" : "https://trac.parrot.org/languages/browser/forth",
+             "project_uri" : "https://trac.parrot.org/parrot/wiki/Languages"
+        }
+    }
+}

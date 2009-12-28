@@ -1,5 +1,6 @@
 
 .HLL 'Forth'
+.namespace []
 
 .sub 'variable'
     .param pmc code
