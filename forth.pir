@@ -1,4 +1,6 @@
 
+.loadlib 'io_ops'
+
 .sub 'main' :main
     .param pmc args
     $S0 = shift args
@@ -22,9 +24,10 @@
     .param string filename
 
     .local string source
-    $P0 = open filename
+    $P0 = new 'FileHandle'
+    $P0.'open'(filename)
     source = $P0.'readall'()
-    close $P0
+    $P0.'close'()
 
     .local pmc forth
     forth  = compreg 'forth'
@@ -42,7 +45,7 @@
 
   loop:
     print "> "
-    $S0 = readline stdin
+    $S0 = stdin.'readline'()
     unless stdin goto end
 
     push_eh exception

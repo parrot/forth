@@ -1,4 +1,6 @@
 
+.loadlib 'io_ops'
+
 # this is the test program for the forth implementation targeting parrot.
 # this script can be passed the names of any number of test files. each test is
 # a series of input/output pairs, with optional comments that start with #s.
@@ -34,7 +36,8 @@
     .param string filename
 
     .local pmc file
-    file = open filename
+    file = new 'FileHandle'
+    file.'open'(filename)
 
     .local string input, expected
     .local int num_of_tests
@@ -55,7 +58,7 @@
     print "1.."
     print num_of_tests
     print "\n"
-    close file
+    file.'close'()
     .return()
 
   missing_output:
@@ -70,7 +73,7 @@
     .param pmc file
     .local string line
   next_line:
-    line = readline file
+    line = file.'readline'()
     if line == '' goto end_of_file
     $S0 = substr line, 0, 1
     if $S0 == "\n" goto next_line
@@ -123,7 +126,7 @@
       stack = $P0()
     pop_eh
     setstdout stdout
-    output = readline fh
+    output = fh.'readline'()
     if output != "" goto compare
     output = join " ", stack
     goto compare
