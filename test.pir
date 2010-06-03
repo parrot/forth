@@ -1,6 +1,4 @@
 
-.loadlib 'io_ops'
-
 # this is the test program for the forth implementation targeting parrot.
 # this script can be passed the names of any number of test files. each test is
 # a series of input/output pairs, with optional comments that start with #s.
@@ -99,6 +97,8 @@
     .return (str)
 .end
 
+.include 'stdio.pasm'
+
 #
 #   is(forth code, expected output, test number)
 #
@@ -115,17 +115,21 @@
     .local pmc forth
     forth = compreg 'forth'
 
-    .local pmc    stack, stdout, fh
-    .local string output
-    stdout = getstdout
+    .local pmc interp, stdout
+    interp = getinterp
+    stdout = interp.'stdhandle'(.PIO_STDOUT_FILENO)
+
+    .local pmc fh
     fh = new 'StringHandle'
     fh.'open'('dummy', 'wr')
-    setstdout fh
+    interp.'stdhandle'(.PIO_STDOUT_FILENO, fh)
     push_eh exception
       $P0   = forth(input)
+      .local pmc stack
       stack = $P0()
     pop_eh
-    setstdout stdout
+    interp.'stdhandle'(.PIO_STDOUT_FILENO, stdout)
+    .local string output
     output = fh.'readline'()
     if output != "" goto compare
     output = join " ", stack
@@ -134,7 +138,7 @@
   exception:
     .local pmc except
     .get_results (except)
-    setstdout stdout
+    interp.'stdhandle'(.PIO_STDOUT_FILENO, stdout)
     output = except
 
   compare:

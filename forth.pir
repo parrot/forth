@@ -1,6 +1,4 @@
 
-.loadlib 'io_ops'
-
 .sub 'main' :main
     .param pmc args
     $S0 = shift args
@@ -36,9 +34,12 @@
     $P0()
 .end
 
+.include 'stdio.pasm'
+
 .sub 'prompt'
     .local pmc stdin, forth
-    stdin  = getstdin
+    $P0 = getinterp
+    stdin  = $P0.'stdhandle'(.PIO_STDIN_FILENO)
     forth  = compreg 'forth'
 
     print "Parrot Forth\n"
