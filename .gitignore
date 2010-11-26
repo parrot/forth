@@ -1,0 +1,10 @@
+
+*.c
+*.o
+*.obj
+*.pbc
+*.exe
+*.iss
+
+forth
+installable_forth
