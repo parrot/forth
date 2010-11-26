@@ -34,12 +34,9 @@
     $P0()
 .end
 
-.include 'stdio.pasm'
-
 .sub 'prompt'
     .local pmc stdin, forth
-    $P0 = getinterp
-    stdin  = $P0.'stdhandle'(.PIO_STDIN_FILENO)
+    stdin  = getstdin
     forth  = compreg 'forth'
 
     print "Parrot Forth\n"

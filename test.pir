@@ -8,6 +8,8 @@
 # the stack (where the elements are joined by a space) or the message of a
 # thrown exception.
 
+.loadlib 'io_ops'
+
 .sub 'main' :main
     .param pmc args
     $S0  = shift args
@@ -97,8 +99,6 @@
     .return (str)
 .end
 
-.include 'stdio.pasm'
-
 #
 #   is(forth code, expected output, test number)
 #
@@ -116,19 +116,18 @@
     forth = compreg 'forth'
 
     .local pmc interp, stdout
-    interp = getinterp
-    stdout = interp.'stdhandle'(.PIO_STDOUT_FILENO)
+    stdout = getstdout
 
     .local pmc fh
     fh = new 'StringHandle'
     fh.'open'('dummy', 'wr')
-    interp.'stdhandle'(.PIO_STDOUT_FILENO, fh)
+    setstdout fh
     push_eh exception
       $P0   = forth(input)
       .local pmc stack
       stack = $P0()
     pop_eh
-    interp.'stdhandle'(.PIO_STDOUT_FILENO, stdout)
+    setstdout stdout
     .local string output
     output = fh.'readline'()
     if output != "" goto compare
@@ -138,7 +137,7 @@
   exception:
     .local pmc except
     .get_results (except)
-    interp.'stdhandle'(.PIO_STDOUT_FILENO, stdout)
+    setstdout stdout
     output = except
 
   compare:
