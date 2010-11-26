@@ -9,6 +9,7 @@
     load_bytecode 'tokenstream.pbc'
     load_bytecode 'variablestack.pbc'
     load_bytecode 'virtualstack.pbc'
+    load_bytecode 'PGE.pbc'
 
     # initialize the rstack
     .local pmc stack
@@ -36,12 +37,12 @@
     .param string input
 
     .local pmc code, stream, stack
-    code   = new 'CodeString'
+    code   = new 'StringBuilder'
     stream = new 'TokenStream'
     set stream, input
     stack  = new 'VirtualStack'
 
-    code.'emit'(<<"END_PIR")
+    push code, <<'END_PIR'
 .sub code :anon
     .local pmc stack
     stack = get_hll_global " stack"
@@ -58,8 +59,8 @@ next_token:
 
 done:
     $S0 = stack.'consolidate_to_cstack'()
-    code .= $S0
-    code.'emit'(<<"END_PIR")
+    push code, $S0
+    push code, <<'END_PIR'
     .return(stack)
 .end
 END_PIR
@@ -94,15 +95,18 @@ END_PIR
 
 user_word:
     $S1 = stack.'consolidate_to_cstack'()
-    code .= $S1
+    push code, $S1
     $S0 = dict[$S0]
-    code.'emit'("    '%0'(stack)", $S0)
+    code.'append_format'(<<'END_PIR', $S0)
+    '%0'(stack)
+END_PIR
     .return()
 
 user_var:
     $I0 = vars[$S0]
-    $S0 = code.'unique'('$P')
-    code.'emit'(<<'END_PIR', $S0, $I0)
+    $P0 = get_root_global ['parrot';'PGE';'Util'], 'unique'
+    $S0 = $P0('$P')
+    code.'append_format'(<<'END_PIR', $S0, $I0)
     %0 = new 'Integer'
     %0 = %1
 END_PIR
@@ -117,8 +121,9 @@ undefined:
     throw $P0
 
 numeric:
-    $S0 = code.'unique'('$P')
-    code.'emit'(<<"END_PIR", $S0, token)
+    $P0 = get_root_global ['parrot';'PGE';'Util'], 'unique'
+    $S0 = $P0('$P')
+    code.'append_format'(<<'END_PIR', $S0, token)
     %0 = new 'Integer'
     %0 = %1
 END_PIR

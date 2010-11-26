@@ -34,11 +34,12 @@
     name  = token
     dict  = get_hll_global ' dict'
     nstack = new 'VirtualStack'
-    nword  = new 'CodeString'
+    nword  = new 'StringBuilder'
 
     subname = ' ' . name
-    subname = nword.'unique'(subname)
-    nword.'emit'(<<"END_PIR", subname)
+    $P0 = get_root_global ['parrot';'PGE';'Util'], 'unique'
+    subname = $P0(subname)
+    nword.'append_format'(<<'END_PIR', subname)
 .sub '%0'
     .param pmc stack
 END_PIR
@@ -55,8 +56,8 @@ loop:
 
 done:
     $S0 = nstack.'consolidate_to_cstack'()
-    nword .= $S0
-    nword.'emit'(<<"END_PIR")
+    push nword, $S0
+    push nword, <<'END_PIR'
     .return()
 .end
 END_PIR
@@ -75,7 +76,7 @@ END_PIR
     .param pmc stack
 
     $S0 = pop stack
-    code.'emit'(<<"END_PIR", $S0)
+    code.'append_format'(<<'END_PIR', $S0)
     $P0 = %0
     print $P0
     print " "
@@ -92,7 +93,7 @@ END_PIR
 
     if stack goto compiletime
 
-    code.'emit'(<<"END_PIR")
+    push code, <<'END_PIR'
     print "<"
     $I0 = elements stack
     print $I0
@@ -108,9 +109,10 @@ compiletime:
     $I0 = elements stack
     $S0 = $I0
     $S1 = join "\nprint ' '\nprint ", stack
-    $S2 = code.'unique'('empty')
+    $P0 = get_root_global ['parrot';'PGE';'Util'], 'unique'
+    $S2 = $P0('empty')
 
-    code.'emit'(<<"END_PIR", $S0, $S1, $S2)
+    code.'append_format'(<<'END_PIR', $S0, $S1, $S2)
     print "<"
     $I0 = elements stack
     $I1 = $I0 + %0
@@ -141,9 +143,10 @@ loop:
     goto loop
 done:
 
-    $S0 = code.'unique'('loop')
-    $S1 = code.'unique'('done')
-    code.'emit'(<<"END_PIR", $S0, $S1)
+    $P0 = get_root_global ['parrot';'PGE';'Util'], 'unique'
+    $S0 = $P0('loop')
+    $S1 = $P0('done')
+    code.'append_format'(<<'END_PIR', $S0, $S1)
 %0:
     unless stack goto %1
     $S0 = pop stack
@@ -159,8 +162,11 @@ END_PIR
     .param pmc stack
 
     $S0 = stream.'remove_upto'('"')
-    $S0 = code.'escape'($S0)
-    code.'emit'("print %0", $S0)
+    $P0 = get_root_global ['parrot';'PGE';'Util'], 'pir_str_escape'
+    $S0 = $P0($S0)
+    code.'append_format'(<<'END_PIR', $S0)
+    print %0
+END_PIR
 
     .return()
 .end
@@ -173,7 +179,9 @@ END_PIR
 
     if stack goto compiletime
 
-    code.'emit'('$P0 = pop stack')
+    push code, <<'END_PIR'
+    $P0 = pop stack
+END_PIR
     .return()
 
 compiletime:
@@ -187,7 +195,7 @@ compiletime:
     .param pmc stream
     .param pmc stack
 
-    code.'emit'(<<'END_PIR')
+    push code, <<'END_PIR'
     $P0 = stack[-2]
     push stack, $P0
 END_PIR
@@ -201,7 +209,7 @@ END_PIR
     .param pmc stream
     .param pmc stack
 
-    code.'emit'(<<'END_PIR')
+    push code, <<'END_PIR'
     $P0 = pop stack
     $P1 = pop stack
     push stack, $P0
@@ -219,7 +227,7 @@ END_PIR
 
     if stack goto compiletime
 
-    code.'emit'(<<'END_PIR')
+    push code, <<'END_PIR'
     $P0 = stack[-1]
     push stack, $P0
 END_PIR
@@ -243,11 +251,12 @@ compiletime:
     b = pop stack
     a = pop stack
 
-    $S0 = code.'unique'("$P")
-    $S1 = code.'unique'("$P")
-    $S2 = code.'unique'("$P")
+    $P0 = get_root_global ['parrot';'PGE';'Util'], 'unique'
+    $S0 = $P0('$P')
+    $S1 = $P0('$P')
+    $S2 = $P0('$P')
 
-    code.'emit'(<<"END_PIR", a, b, c, $S0, $S1, $S2)
+    code.'append_format'(<<'END_PIR', a, b, c, $S0, $S1, $S2)
     %3 = %0
     %4 = %1
     %5 = %2
@@ -265,11 +274,12 @@ END_PIR
     .param pmc stack
 
     $S0 = stack.'consolidate_to_cstack'()
-    code .= $S0
+    push code, $S0
 
     .local string label
-    label = code.'unique'('loop')
-    code.'emit'(<<"END_PIR", label)
+    $P0 = get_root_global ['parrot';'PGE';'Util'], 'unique'
+    label = $P0('loop')
+    code.'append_format'(<<'END_PIR', label)
 %0:
 END_PIR
 
@@ -287,10 +297,11 @@ next_token:
 
 until:
     $S1 = pop stack
-    $S2 = code.'unique'("$P")
+    $P0 = get_root_global ['parrot';'PGE';'Util'], 'unique'
+    $S2 = $P0('$P')
     $S0 = stack.'consolidate_to_cstack'()
-    code .= $S0
-    code.'emit'(<<"END_PIR", label, $S1, $S2)
+    push code, $S0
+    code.'append_format'(<<'END_PIR', label, $S1, $S2)
     %2 = %1
     unless %2 goto %0
 END_PIR
@@ -308,13 +319,14 @@ error:
     .param pmc stack
 
     $S4 = pop stack
-    $S1 = code.'unique'('$P')
-    $S2 = code.'unique'('else')
-    $S3 = code.'unique'('done')
+    $P0 = get_root_global ['parrot';'PGE';'Util'], 'unique'
+    $S1 = $P0('$P')
+    $S2 = $P0('else')
+    $S3 = $P0('done')
 
     $S0 = stack.'consolidate_to_cstack'()
-    code .= $S0
-    code.'emit'(<<"END_PIR", $S4, $S1, $S2, $S3)
+    push code, $S0
+    code.'append_format'(<<'END_PIR', $S4, $S1, $S2, $S3)
     %1 = %0
     unless %1 goto %2
 END_PIR
@@ -333,8 +345,8 @@ if_loop:
 
 else:
     $S0 = stack.'consolidate_to_cstack'()
-    code .= $S0
-    code.'emit'(<<"END_PIR", $S2, $S3)
+    push code, $S0
+    code.'append_format'(<<'END_PIR', $S2, $S3)
     goto %1
 %0:
 END_PIR
@@ -350,11 +362,15 @@ else_loop:
     goto else_loop
 
 if_done:
-    code.'emit'("%0:", $S2)
+    code.'append_format'(<<'END_PIR', $S2)
+%0:
+END_PIR
 done:
-    code.'emit'("%0:", $S3)
+    code.'append_format'(<<'END_PIR', $S3)
+%0:
+END_PIR
     $S0 = stack.'consolidate_to_cstack'()
-    code .= $S0
+    push code, $S0
     .return()
 
 error:
@@ -368,7 +384,9 @@ error:
     .param pmc stream
     .param pmc stack
 
-    code.'emit'('print "\n"')
+    push code, <<'END_PIR'
+    print "\n"
+END_PIR
 
     .return()
 .end
@@ -381,9 +399,10 @@ error:
 
     .local string a
     a   = pop stack
-    $S0 = code.'unique'("$P")
+    $P0 = get_root_global ['parrot';'PGE';'Util'], 'unique'
+    $S0 = $P0('$P')
 
-    code.'emit'(<<"END_PIR", a, $S0)
+    code.'append_format'(<<'END_PIR', a, $S0)
     $I0 = %0
     $I0 = islt $I0, 0
     %1  = new 'Integer'
@@ -403,11 +422,12 @@ END_PIR
     .local string a, b
     b = pop stack
     a = pop stack
-    $S0 = code.'unique'("$P")
-    $S1 = code.'unique'("$P")
-    $S2 = code.'unique'("$P")
+    $P0 = get_root_global ['parrot';'PGE';'Util'], 'unique'
+    $S0 = $P0('$P')
+    $S1 = $P0('$P')
+    $S2 = $P0('$P')
 
-    code.'emit'(<<"END_PIR", b, a, $S0, $S1, $S2)
+    code.'append_format'(<<'END_PIR', b, a, $S0, $S1, $S2)
     %2 = %0
     %3 = %1
     %4 = new 'Float'
@@ -427,11 +447,12 @@ END_PIR
     .local string a, b
     b = pop stack
     a = pop stack
-    $S0 = code.'unique'("$P")
-    $S1 = code.'unique'("$P")
-    $S2 = code.'unique'("$P")
+    $P0 = get_root_global ['parrot';'PGE';'Util'], 'unique'
+    $S0 = $P0('$P')
+    $S1 = $P0('$P')
+    $S2 = $P0('$P')
 
-    code.'emit'(<<"END_PIR", b, a, $S0, $S1, $S2)
+    code.'append_format'(<<'END_PIR', b, a, $S0, $S1, $S2)
     %2 = %0
     %3 = %1
     %4 = new 'Float'
