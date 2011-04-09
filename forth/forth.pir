@@ -66,7 +66,11 @@ done:
 END_PIR
 
     $P0 = compreg "PIR"
-    .tailcall $P0(code)
+
+    # Workaround for -tailcall problem after imcc_compreg_pmc merge
+    #.tailcall $P0(code)
+    $P99 = $P0(code)
+    .return($P99)
 .end
 
 .sub ' dispatch'
