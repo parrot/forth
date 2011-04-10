@@ -121,7 +121,7 @@ undefined:
     $S0 = token
     $S0 = "undefined symbol: " . $S0
     $P0 = new 'Exception'
-    $P0[0] = $S0
+    $P0['message'] = $S0
     throw $P0
 
 numeric:
