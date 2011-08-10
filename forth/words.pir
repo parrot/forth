@@ -463,6 +463,31 @@ END_PIR
     .return()
 .end
 
+# multiplication
+.sub '*'
+    .param pmc code
+    .param pmc stream
+    .param pmc stack
+
+    .local string a, b
+    b = pop stack
+    a = pop stack
+    $P0 = get_root_global ['parrot';'PGE';'Util'], 'unique'
+    $S0 = $P0('$P')
+    $S1 = $P0('$P')
+    $S2 = $P0('$P')
+
+    code.'append_format'(<<'END_PIR', b, a, $S0, $S1, $S2)
+    %2 = %0
+    %3 = %1
+    %4 = new 'Float'
+    %4 = %3 * %2
+END_PIR
+    push stack, $S2
+
+    .return()
+.end
+
 # Local Variables:
 #   mode: pir
 #   fill-column: 100
